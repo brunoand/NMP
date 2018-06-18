@@ -89,7 +89,7 @@ if (params.mode != "characterisation" && ( (params.library == "paired-end" && (p
 
 
 //Creates working dir
-workingpath = params.outdir + "/" + params.prefix + "/" + params.date
+workingpath = params.outdir + "/" + params.prefix
 workingdir = file(workingpath)
 if( !workingdir.exists() ) {
     if( !workingdir.mkdirs() ) 	{
@@ -98,40 +98,33 @@ if( !workingdir.exists() ) {
 }
 
 //Creating other folders
-matrixpath = params.outdir + "/" + params.prefix + "/Matrix"
-abundancepath = params.outdir + "/" + params.prefix + "/Matrix/Abundance"
-read_count_path = params.outdir + "/" + params.prefix + "/Matrix/Read_count"
-plotpath = params.outdir + "/" + params.prefix + "/Plots"
-matrixdir = file(matrixpath)
-abundancedir = file(abundancepath)
-read_count_dir = file(read_count_path)
-plotdir = file(plotpath)
+matrixdir = file(params.outdir + "/" + params.prefix + "/Matrix")
+plotdir = file(params.outdir + "/" + params.prefix + "/Plots")
+QCdir = file(params.outdir + "/" + params.prefix + "/QC")
+
 
 
 if( !matrixdir.exists() ) {
     if( !matrixdir.mkdirs() ) 	{
-        exit 1, "Cannot create working directory: $matrixpath"
+        exit 1, "Cannot create Matrix directory"
     } 
 }
-if( !abundancedir.exists() ) {
-    if( !abundancedir.mkdirs() ) 	{
-        exit 1, "Cannot create working directory: $abundancepath"
-    } 
-}
-if( !read_count_dir.exists() ) {
-    if( !read_count_dir.mkdirs() ) 	{
-        exit 1, "Cannot create working directory: $read_count_path"
-    } 
-}
+
 if( !plotdir.exists() ) {
     if( !plotdir.mkdirs() ) {
-	exit 1, "Cannot creat working directory: $plotpath"
+	exit 1, "Cannot creat directory for graphics"
+    }
+}
+
+if( !QCdir.exists() ) {
+    if( !QCdir.mkdirs() ) {
+        exit 1, "Cannot creat directory for Quality check files"
     }
 }
 
 
 //Creates main log file
-mylog = file(params.outdir + "/" + params.prefix + "/" + params.date + "/" + params.prefix + ".log")
+mylog = file(params.outdir + "/" + params.prefix + "/" + params.prefix + ".log")
 
 //Logs headers
 mylog <<  """---------------------------------------------
@@ -430,7 +423,7 @@ mockdecontaminate = Channel.from("null", "null")
 
 process decontaminate {
 
-	publishDir  workingdir, mode: 'copy', pattern: "*_clean.fq"
+	publishDir  QCdir, mode: 'copy', pattern: "*_clean.fq"
 		
 	input:
 	set file(infile1), file(infile2), file(infile12) from todecontaminate.concat(mockdecontaminate).flatMap().take(3).buffer(size : 3)
@@ -511,7 +504,7 @@ process decontaminate {
 
 process profileTaxa {
 
-	publishDir  workingdir, mode: 'copy', pattern: "*.tsv"
+	publishDir  matrixdir, mode: 'copy', pattern: "*.txt"
 	
 	input:
 	file(infile) from toprofiletaxa
@@ -520,7 +513,7 @@ process profileTaxa {
 
     output:
 
-	file "${params.prefix}_${params.date}*.txt" into toprofilefunctionbugs
+	file "${params.date}*.txt" into toprofilefunctionbugs
 
 	when:
 	params.mode == "complete"
@@ -537,18 +530,11 @@ process profileTaxa {
 	rm -rf ${params.prefix}_bt2out.txt
 	
 	#Defines command for estimating abundances
-	CMD=\"metaphlan2.py --input_type fastq --bowtie2out=${params.prefix}.bt2 -t rel_ab_w_read_stats --bt2_ps $params.bt2options --nproc ${task.cpus} $infile -o ${params.prefix}_${params.date}_matrix.txt \"
+	CMD=\"metaphlan2.py --input_type fastq --bowtie2out=${params.prefix}.bt2 -t rel_ab --bt2_ps $params.bt2options --nproc ${task.cpus} $infile -o ${params.date}.txt \"
 
 
 	#Estimates microbial abundances
 	exec \$CMD 2>&1 | tee tmp.log
-
-
-	#Generating Relative abundance and read count outputs for every taxonomic level
-	cp ${params.prefix}_${params.date}_matrix.txt $matrixdir
-
-	cut -f1,2 ${params.prefix}_${params.date}_matrix.txt > $matrixdir/Abundance/${params.prefix}_${params.date}_abundance.txt
-	cut -f1,5 ${params.prefix}_${params.date}_matrix.txt > $matrixdir/Read_count/${params.prefix}_${params.date}_counts.txt
 
 
 	#Measures and log execution time
@@ -582,7 +568,7 @@ toQC = rawreads.mix(trimmedreads2qc, decontaminatedreads2qc)
 //Process performing all the Quality Assessment
 process qualityAssessment {
 	
-	publishDir  workingdir, mode: 'copy', pattern: "*.{html,txt}"
+	publishDir  QCdir, mode: 'copy', pattern: "*.{html,txt}"
 	  	
 	input:
    	set val(step), file(reads), val(label), val(stem) from toQC
