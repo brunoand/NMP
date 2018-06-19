@@ -16,7 +16,6 @@ RUN apt-get update && apt-get install -yq --no-install-recommends \
     python-pandas \
     python-matplotlib \
     bowtie2 \
-    r-base \
     git \
     ca-certificates \
     bzip2 \
@@ -34,20 +33,23 @@ RUN apt-get install -t jessie-backports openjdk-8-jre-headless --yes
 RUN pip install biopython
 
 #Install R libraries
-RUN R -e "install.packages('ggplot2', repos='http://cran.rstudio.com', dependencies = TRUE);" && \
-        R -e "install.packages('ggfortify', repos='http://cran.rstudio.com', dependencies = TRUE);" && \
-        R -e "install.packages('stringr', repos='http://cran.rstudio.com', dependencies = TRUE);"
+#RUN R -e "install.packages('ggplot2', repos='http://cran.rstudio.com', dependencies = TRUE);" && \
+ #       R -e "install.packages('ggfortify', repos='http://cran.rstudio.com', dependencies = TRUE);" && \
+  #      R -e "install.packages('stringr', repos='http://cran.rstudio.com', dependencies = TRUE);"
 
 #Downloading R scripts for barcharts and custom colors
 
 RUN git clone https://github.com/brunoand/NMP.git && \
-	tar -zxf NMP/R.tar.gz --directory /opt/ && \
-	rm -rf NMP
+	chmod +x NMP/Scripts/ImmunoAddept_barchart.py && \
+	mv NMP/Scripts/ImmunoAddept_barchart.py /opt/
 
 #Install Metaphlan2
 RUN wget https://bitbucket.org/biobakery/metaphlan2/get/default.zip && \
 	unzip default.zip -d /opt/
-RUN python /opt/biobakery-metaphlan2-7df8753d7e5e/metaphlan2.py --input_type fastq
+RUN python /opt/biobakery-metaphlan2-b1e5bfbb5bb1/metaphlan2.py --input_type fastq
+
+
+
 
 #Install FastQC and BBmap
 RUN wget -q -O fastqc.zip http://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.11.5.zip && \

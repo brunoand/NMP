@@ -1,4 +1,5 @@
-cription     :new service
+#!/usr/local/bin/Rscript
+# description     :new service
 # version         :1.0
 # copyright       :NSilico Life Science Ltd.
 # author          :Cintia Palu
