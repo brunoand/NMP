@@ -65,7 +65,7 @@ Class = Df_final[Df_final.index.str.match('c__')].reset_index().replace(to_repla
 Order = Df_final[Df_final.index.str.match('o__')].reset_index().replace(to_replace = 'o__', value = '', regex = True).rename(columns={'Clade': 'Order'}).set_index('Order')
 Family = Df_final[Df_final.index.str.match('f__')].reset_index().replace(to_replace = 'f__', value = '', regex = True).rename(columns={'Clade': 'Family'}).set_index('Family')
 Genus = Df_final[Df_final.index.str.match('g__')].reset_index().replace(to_replace = 'g__', value = '', regex = True).rename(columns={'Clade': 'Genus'}).set_index('Genus')
-Species = Df_final[Df_final.index.str.match('s__')].reset_index().replace(to_replace = 's__', value = '', regex = True).rename(columns={'Clade': 'Species'}).set_index('Species')
+Species = Df_final[Df_final.index.str.match('s__')].reset_index().replace(to_replace = 's__', value = '', regex = True).replace(to_replace = '_', value = ' ', regex = True).rename(columns={'Clade': 'Species'}).set_index('Species')
 
 #Plot tax_levels
 plot_bar(Kingdom, Kingdom.index.name)
