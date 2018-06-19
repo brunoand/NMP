@@ -4,7 +4,8 @@ import matplotlib.pyplot as plt
 import sys
 from matplotlib.colors import ListedColormap
 from os import walk
-
+import matplotlib.pyplot as plt
+plt.switch_backend('agg')
 
 def plot_bar(x, tax_level):
     fig = plt.figure()
