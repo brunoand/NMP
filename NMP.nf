@@ -330,7 +330,7 @@ process Plot {
 	file(infile_plot) from toplot
 	script:
 	"""
-	ImmunoAddept_barchart.py ${matrixdir}
+	Imunoadept_barchart.py ${matrixdir}
 	"""
 }
 

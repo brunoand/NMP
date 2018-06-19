@@ -1,7 +1,7 @@
+#!/usr/bin/python3
 import pandas as pd
 import matplotlib.pyplot as plt
 import sys
-#import seaborn as sns
 from matplotlib.colors import ListedColormap
 from os import walk
 
