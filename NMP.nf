@@ -264,7 +264,7 @@ process profileTaxa {
     output:
 
 	file "${params.date}*.txt" into toprofilefunctionbugs
-	file "${params.date}*.txt" into toplot
+
 
 	script:
 	"""
@@ -272,13 +272,13 @@ process profileTaxa {
 	rm -rf ${params.prefix}_bt2out.txt
 	
 	#Defines command for estimating abundances
-	CMD=\"python /opt/biobakery-metaphlan2-b1e5bfbb5bb1/metaphlan2.py --input_type fastq --bowtie2out=${params.prefix}.bt2 -t rel_ab --bt2_ps $params.bt2options --nproc ${task.cpus} $infile -o ${params.date}.txt \"
+	CMD=\"python /opt/biobakery-metaphlan2-*/metaphlan2.py --input_type fastq --bowtie2out=${params.prefix}.bt2 -t rel_ab --bt2_ps $params.bt2options --nproc ${task.cpus} $infile -o ${params.date}.txt \"
 
 
 	#Estimates microbial abundances
 	exec \$CMD 2>&1
-	sed -ri 's/Metaphlan2_Analysis/'${params.date}'/' *.txt
-	sed -ri 's/#SampleID/Clade/' *.txt
+
+
 	"""
 }
 
@@ -286,17 +286,6 @@ process profileTaxa {
 //                     Quality assessment and visualization                    
 // ------------------------------------------------------------------------------
 
-process Plot {
-
-	publishDir plotdir, mode : 'copy', pattern: "*.{pdf,png}"
-
-	input:
-	file(infile_plot) from toplot
-	script:
-	"""
-	Immunoadept_barchart.py ${matrixdir}/
-	"""
-}
 
 
 if (params.library == "paired-end") {
