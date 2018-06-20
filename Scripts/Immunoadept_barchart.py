@@ -62,13 +62,13 @@ Df_final['#SampleID'] = Df_final['#SampleID'].replace(to_replace = '.{1,}\|', va
 Df_final = Df_final.set_index('#SampleID')
 
 #Split tables in 7 tables based on tax_level
-Kingdom = Df_final[Df_final.index.str.match('k__')].reset_index().replace(to_replace = 'k__', value = '', regex = True).rename(columns={'Clade': 'Kingdom'}).set_index('Kingdom')
-Phyllum = Df_final[Df_final.index.str.match('p__')].reset_index().replace(to_replace = 'p__', value = '', regex = True).rename(columns={'Clade': 'Phyllum'}).set_index('Phyllum')
-Class = Df_final[Df_final.index.str.match('c__')].reset_index().replace(to_replace = 'c__', value = '', regex = True).rename(columns={'Clade': 'Class'}).set_index('Class')
-Order = Df_final[Df_final.index.str.match('o__')].reset_index().replace(to_replace = 'o__', value = '', regex = True).rename(columns={'Clade': 'Order'}).set_index('Order')
-Family = Df_final[Df_final.index.str.match('f__')].reset_index().replace(to_replace = 'f__', value = '', regex = True).rename(columns={'Clade': 'Family'}).set_index('Family')
-Genus = Df_final[Df_final.index.str.match('g__')].reset_index().replace(to_replace = 'g__', value = '', regex = True).rename(columns={'Clade': 'Genus'}).set_index('Genus')
-Species = Df_final[Df_final.index.str.match('s__')].reset_index().replace(to_replace = 's__', value = '', regex = True).replace(to_replace = '_', value = ' ', regex = True).rename(columns={'Clade': 'Species'}).set_index('Species')
+Kingdom = Df_final[Df_final.index.str.match('k__')].reset_index().replace(to_replace = 'k__', value = '', regex = True).rename(columns={'#SampleID': 'Kingdom'}).set_index('Kingdom')
+Phyllum = Df_final[Df_final.index.str.match('p__')].reset_index().replace(to_replace = 'p__', value = '', regex = True).rename(columns={'#SampleID': 'Phyllum'}).set_index('Phyllum')
+Class = Df_final[Df_final.index.str.match('c__')].reset_index().replace(to_replace = 'c__', value = '', regex = True).rename(columns={'#SampleID': 'Class'}).set_index('Class')
+Order = Df_final[Df_final.index.str.match('o__')].reset_index().replace(to_replace = 'o__', value = '', regex = True).rename(columns={'#SampleID': 'Order'}).set_index('Order')
+Family = Df_final[Df_final.index.str.match('f__')].reset_index().replace(to_replace = 'f__', value = '', regex = True).rename(columns={'#SampleID': 'Family'}).set_index('Family')
+Genus = Df_final[Df_final.index.str.match('g__')].reset_index().replace(to_replace = 'g__', value = '', regex = True).rename(columns={'#SampleID': 'Genus'}).set_index('Genus')
+Species = Df_final[Df_final.index.str.match('s__')].reset_index().replace(to_replace = 's__', value = '', regex = True).replace(to_replace = '_', value = ' ', regex = True).rename(columns={'#SampleID': 'Species'}).set_index('Species')
 
 #Plot tax_levels
 plot_bar(Kingdom, Kingdom.index.name)
