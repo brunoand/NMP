@@ -58,8 +58,8 @@ for (dirpath, dirnames, filenames) in walk(path):
 #Join all tables in a single matrix
 dfs = [pd.read_csv(path +filename, index_col = 0, sep = '\t').rename(index=str, columns={"Metaphlan2_Analysis": re.sub(".{1,}_","",re.sub("_abundance.txt","", filename))}) for filename in f]
 Df_final = dfs[0].join(dfs[1:], how = 'outer').fillna(0.0).reset_index()
-Df_final['Clade'] = Df_final['Clade'].replace(to_replace = '.{1,}\|', value = '', regex = True)
-Df_final = Df_final.set_index('Clade')
+Df_final['#SampleID'] = Df_final['#SampleID'].replace(to_replace = '.{1,}\|', value = '', regex = True)
+Df_final = Df_final.set_index('#SampleID')
 
 #Split tables in 7 tables based on tax_level
 Kingdom = Df_final[Df_final.index.str.match('k__')].reset_index().replace(to_replace = 'k__', value = '', regex = True).rename(columns={'Clade': 'Kingdom'}).set_index('Kingdom')
