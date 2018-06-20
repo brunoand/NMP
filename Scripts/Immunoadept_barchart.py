@@ -54,7 +54,7 @@ for (dirpath, dirnames, filenames) in walk(path):
 
 
 #Join all tables in a single matrix
-dfs = [pd.read_csv(path +filename, index_col = 0, sep = '\t') for filename in f]
+dfs = [pd.read_csv(path +filename, index_col = 0, sep = '\t').rename(index=str, columns={"Metaphlan2_Analysis": re.sub(".{1,}_","",re.sub("_abundance.txt","", filename))}) for filename in f]
 Df_final = dfs[0].join(dfs[1:], how = 'outer').fillna(0.0).reset_index()
 Df_final['Clade'] = Df_final['Clade'].replace(to_replace = '.{1,}\|', value = '', regex = True)
 Df_final = Df_final.set_index('Clade')

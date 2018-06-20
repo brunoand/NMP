@@ -15,6 +15,10 @@ RUN apt-get update && apt-get install -yq --no-install-recommends \
     python-numpy \
     python-pandas \
     python-matplotlib \
+    python3 \
+    python3-pandas \
+    python3-numpy \
+    python3-matplotlib \
     bowtie2 \
     git \
     ca-certificates \
@@ -37,11 +41,6 @@ RUN pip install biopython
  #       R -e "install.packages('ggfortify', repos='http://cran.rstudio.com', dependencies = TRUE);" && \
   #      R -e "install.packages('stringr', repos='http://cran.rstudio.com', dependencies = TRUE);"
 
-#Downloading R scripts for barcharts and custom colors
-
-RUN git clone https://github.com/brunoand/NMP.git && \
-	chmod +x NMP/Scripts/ImmunoAddept_barchart.py && \
-	mv NMP/Scripts/ImmunoAddept_barchart.py /opt/
 
 #Install Metaphlan2
 RUN wget https://bitbucket.org/biobakery/metaphlan2/get/default.zip && \
@@ -49,6 +48,11 @@ RUN wget https://bitbucket.org/biobakery/metaphlan2/get/default.zip && \
 RUN python /opt/biobakery-metaphlan2-b1e5bfbb5bb1/metaphlan2.py --input_type fastq
 
 
+#Clonning Scripts
+
+RUN git clone https://github.com/brunoand/NMP.git && \
+        chmod +x NMP/Scripts/Immunoadept_barchart.py && \
+        cp NMP/Scripts/Immunoadept_barchart.py /opt/
 
 
 #Install FastQC and BBmap
@@ -64,5 +68,8 @@ RUN wget -q -O BBMap_37.09.tar.gz https://sourceforge.net/projects/bbmap/files/B
 
 RUN curl -fsSL get.nextflow.io | bash && \
 	mv nextflow /opt/
+RUN apt install python3-tk --yes
+RUN apt install  python3-pip --yes
 
+run pip3 install pandas --upgrade
 ENV PATH $PATH:/opt/::/opt/FastQC/:/opt/bbmap:/opt/biobakery-metaphlan2-7df8753d7e5e/

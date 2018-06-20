@@ -27,7 +27,7 @@ if (params.help) {
 	System.out.println("Nsilico metagenomic pipeline (NMP) - Version: $version ($timestamp)")
 	System.out.println("")
 	System.out.println("Usage")
-	System.out.println("   nextflow run -c nextflow.config NMP.nf --reads_R1 R1 --reads_R2 R2 --date date --prefix mysample --outdir path --mode MODE  ")
+	System.out.println("   nextflow run -c nextflow.config NMP.nf --reads_R1 R1 --reads_R2 R2 --date date --prefix mysample --outdir path")
 	System.out.println("                [options] [-with-docker]")
 	System.out.println("")
 	System.out.println("Mandatory arguments:")
@@ -36,10 +36,8 @@ if (params.help) {
 	System.out.println("    --date date      Date of collection of an individual microbiome sample")
 	System.out.println("    --prefix   prefix  Prefix used to name the result files")
 	System.out.println("    --outdir   path    Output directory (will be outdir/prefix/date)")
-	System.out.println("    --mode     <QC|complete>")
 	System.out.println("Options:")
 	System.out.println("    --library <single-end|paired-end>")
-	System.out.println("    --dedup         <true|false>   whether to perform de-duplication")
 	System.out.println("")
 	System.out.println("Container:")
 	System.out.println("    Docker image to use with docker is")
@@ -59,17 +57,7 @@ if (params.help) {
 
 
 //Checking user-defined parameters	
-if (params.mode != "QC" && params.mode != "complete") {
-	exit 1, "Mode not available. Choose any of <QC, characterisation, complete>"
-}	
 
-if (params.library != "paired-end" && params.library != "single-end") { 
-	exit 1, "Library layout not available. Choose any of <single-end, paired-end>" 
-}   
-
-if (params.Pcoding != 33 && params.Pcoding != 64) { 
-	exit 1, "Input quality offset (Pcoding) not available. Choose either 33 (ASCII+33) or 64 (ASCII+64)" 
-}   
 
 //--reads_R2 can be omitted when the library layout is "single-end"
 
@@ -77,11 +65,6 @@ if (params.library != "single-end" && (params.reads_R2 == "null") ) {
 	exit 1, "If dealing with paired-end reads, please set the reads_R2 arguments and if dealing with single-end reads, please set the library argument to 'single-end'"
 }
 
-
-
-if (params.mode != "characterisation" && ( (params.library == "paired-end" && (params.reads_R1 == "null" || params.reads_R2 == "null")) ||  params.library == "single-end" && params.reads_R1 == "null") ) {
-	exit 1, "Please set the reads_R1 and/or reads_R2 parameters"
-}
 
 
 //Creates working dir
@@ -118,11 +101,6 @@ if( !QCdir.exists() ) {
     }
 }
 
-
-//Creates main log file
-mylog = file(params.outdir + "/" + params.prefix + "/" + params.prefix + ".log")
-
-	   
 
 
 /**
@@ -179,8 +157,6 @@ process trim {
 	file("${params.prefix}_trimmed*.fq") into todecontaminate
 	file("${params.prefix}_trimmed*.fq") into trimmedreads
 
-	when:
-	params.mode == "QC" || params.mode == "complete"
 
    	script:
 	"""	
@@ -206,8 +182,6 @@ process trim {
 	fi
 
 
-	#Removes synthetic contaminants and logs some figures (singleton read file, 
-	#that exists iif the library layout was 'paired')
 	if [ \"$params.library\" = \"paired\" ]; then
 	bbduk.sh -Xmx\"\$maxmem\" in=${params.prefix}_trimmed_singletons_tmp.fq out=${params.prefix}_trimmed_singletons.fq k=31 ref=$phix174ill,$artifacts qin=$params.Pcoding threads=${task.cpus} ow
 		
@@ -249,16 +223,8 @@ process decontaminate {
 	file "${params.prefix}_clean.fq" into decontaminatedreads
 	file "${params.prefix}_clean.fq" into toprofiletaxa
 
-	when:
-	params.mode == "QC" || params.mode == "complete"
-
 	script:
 	"""
-
-
-
-
-
 
 	#Sets the maximum memory to the value requested in the config file
 	maxmem=\$(echo ${task.memory} | sed 's/ //g' | sed 's/B//g')
@@ -269,7 +235,7 @@ process decontaminate {
 		CMD=\"bbwrap.sh  -Xmx\"\$maxmem\" mapper=bbmap append=t in1=$infile1 outu=${params.prefix}_clean.fq outm=${params.prefix}_cont.fq minid=$params.mind maxindel=$params.maxindel bwr=$params.bwr bw=12 minhits=2 qtrim=rl trimq=$params.Quality path=$RefGenome qin=$params.Pcoding threads=${task.cpus} untrim quickmatch fast ow\"
 	fi
 
-	#Execyte decontamination
+	#Execute decontamination
 	exec \$CMD 2>&1
 	
 	"""
@@ -299,8 +265,6 @@ process profileTaxa {
 
 	file "${params.date}*.txt" into toprofilefunctionbugs
 	file "${params.date}*.txt" into toplot
-	when:
-	params.mode == "complete"
 
 	script:
 	"""
@@ -312,9 +276,9 @@ process profileTaxa {
 
 
 	#Estimates microbial abundances
-	exec \$CMD 2>&1 | tee tmp.log
-	sed -ri 's/Metaphlan2_Analysis/'"${params.date}"'/' ${params.date}.txt
-	sed -ri 's/#SampleID/Clade/' ${params.date}.txt
+	exec \$CMD 2>&1
+	sed -ri 's/Metaphlan2_Analysis/'${params.date}'/' *.txt
+	sed -ri 's/#SampleID/Clade/' *.txt
 	"""
 }
 
@@ -330,7 +294,7 @@ process Plot {
 	file(infile_plot) from toplot
 	script:
 	"""
-	Imunoadept_barchart.py ${matrixdir}
+	Immunoadept_barchart.py ${matrixdir}/
 	"""
 }
 
@@ -356,9 +320,6 @@ process qualityAssessment {
 
 	output:
 	file "${params.prefix}*_fastqc.html" 
-
-	when:
-	params.mode == "QC" | params.mode == "complete"
 
    	script:
 	"""	
