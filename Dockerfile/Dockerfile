@@ -17,8 +17,7 @@ RUN apt-get update && apt-get install -yq --no-install-recommends \
     python-matplotlib \
     python3 \
     python3-pandas \
-    python3-numpy \
-    python3-matplotlib \
+    python3-numpy \  
     bowtie2 \
     git \
     ca-certificates \
@@ -45,15 +44,7 @@ RUN pip install biopython
 #Install Metaphlan2
 RUN wget https://bitbucket.org/biobakery/metaphlan2/get/default.zip && \
 	unzip default.zip -d /opt/
-RUN python /opt/biobakery-metaphlan2-b1e5bfbb5bb1/metaphlan2.py --input_type fastq
-
-
-#Clonning Scripts
-
-RUN git clone https://github.com/brunoand/NMP.git && \
-        chmod +x NMP/Scripts/Immunoadept_barchart.py && \
-        cp NMP/Scripts/Immunoadept_barchart.py /opt/
-
+RUN python /opt/biobakery-metaphlan2-*/metaphlan2.py --input_type fastq
 
 #Install FastQC and BBmap
 RUN wget -q -O fastqc.zip http://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.11.5.zip && \
@@ -71,5 +62,15 @@ RUN curl -fsSL get.nextflow.io | bash && \
 RUN apt install python3-tk --yes
 RUN apt install  python3-pip --yes
 
-run pip3 install pandas --upgrade
+RUN pip3 install pandas --upgrade
+RUN apt install pkg-config
+RUN pip3 install matplotlib
+
+#Clonning Scripts
+
+RUN git clone https://github.com/brunoand/NMP.git && \
+        chmod +x NMP/Scripts/Immunoadept_barchart.py && \
+	echo e && \
+        cp NMP/Scripts/Immunoadept_barchart.py /opt/
+
 ENV PATH $PATH:/opt/::/opt/FastQC/:/opt/bbmap:/opt/biobakery-metaphlan2-7df8753d7e5e/
