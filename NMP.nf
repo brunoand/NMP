@@ -47,24 +47,17 @@ if (params.help) {
 
 	
 /**
-	STEP 0. 
-	
-	Checks input parameters and (if it does not exists) creates the directory 
-	where the results will be stored. 
 
-	
+	Checking user-defined parameters
+
 */
 
 
-//Checking user-defined parameters	
-
-
-//--reads_R2 can be omitted when the library layout is "single-end"
+//--reads_R2 can be omitted if the library layout is "single-end"
 
 if (params.library != "single-end" && (params.reads_R2 == "null") ) {
 	exit 1, "If dealing with paired-end reads, please set the reads_R2 arguments and if dealing with single-end reads, please set the library argument to 'single-end'"
 }
-
 
 
 //Creates working dir
@@ -81,8 +74,6 @@ matrixdir = file(params.outdir + "/" + params.prefix + "/Matrix")
 plotdir = file(params.outdir + "/" + params.prefix + "/Plots")
 QCdir = file(params.outdir + "/" + params.prefix + "/QC")
 
-
-
 if( !matrixdir.exists() ) {
     if( !matrixdir.mkdirs() ) 	{
         exit 1, "Cannot create Matrix directory"
@@ -91,21 +82,21 @@ if( !matrixdir.exists() ) {
 
 if( !plotdir.exists() ) {
     if( !plotdir.mkdirs() ) {
-	exit 1, "Cannot creat directory for graphics"
+	exit 1, "Cannot create directory for plots"
     }
 }
 
 if( !QCdir.exists() ) {
     if( !QCdir.mkdirs() ) {
-        exit 1, "Cannot creat directory for Quality check files"
+        exit 1, "Cannot create directory for Quality check files"
     }
 }
 
 
 
 /**
-	Quality Assessment - STEP 1. Read quality assessment using the FastQC software. 
-	Multiple  plots are generated to show average phred quality scores and other metrics.
+	Quality Assessment 
+
 */
 
 
@@ -123,7 +114,7 @@ else {
 
 /**
 	Quality control - STEP 1. Trimming of low quality bases and of adapter sequences. Short reads
-a	are discarded. A decontamination of synthetic sequences is also peformed.
+	are discarded. A decontamination of synthetic sequences is also peformed.
 	If dealing with paired-end reads, when either forward or reverse of a paired-read
 	are discarded, the surviving read is saved on a file of singleton reads.
 
@@ -141,8 +132,8 @@ else {
 
 
 //When single-end reads are used, the input tuple (singleton) will not match input set 
-//cardinality declared by 'trim' process (pair), so I push two mock files in the channel,
-//and then I take only the first two files
+//cardinality declared by 'trim' process (pair), so two mock files were pushed in the channel,
+//and then the first two files were taked
 mocktrim = Channel.from("null")
 process trim {
 
@@ -184,10 +175,8 @@ process trim {
 
 	if [ \"$params.library\" = \"paired\" ]; then
 	bbduk.sh -Xmx\"\$maxmem\" in=${params.prefix}_trimmed_singletons_tmp.fq out=${params.prefix}_trimmed_singletons.fq k=31 ref=$phix174ill,$artifacts qin=$params.Pcoding threads=${task.cpus} ow
-		
-		
-	fi
 	
+	fi
 	#Removes tmp files. This avoids adding them to the output channels
 	rm -rf ${params.prefix}_trimmed*_tmp.fq 
 	"""
@@ -196,18 +185,10 @@ process trim {
 
 
 /**
-	Quality control - STEP 2. Decontamination. Removes external organisms' contamination, 
-	using a previously created index. When paired-end reads are used, decontamination is 
-	carried on idependently on paired reads and on singleton reads thanks to BBwrap, 
-	that calls BBmap once on the paired reads and once on the singleton ones, merging
-	 the results on a single output file.
-
-
+	Decontamination step.
 */
 
-//When single-end reads are used, the input tuple (singleton) will not match input set 
-//cardinality declared by 'trim' process (triplet), so I push two mock files in the channel,
-//and then I take only the first three files.
+
 mockdecontaminate = Channel.from("null", "null")
 
 process decontaminate {
@@ -313,8 +294,6 @@ process qualityAssessment {
    	script:
 	"""	
 	
-	#Logs version of the software and executed command
-	version=\$(fastqc --version) 
 	fastqc --quiet --noextract --format fastq --outdir=. --threads ${task.cpus} $reads
 	
 
