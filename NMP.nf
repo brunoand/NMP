@@ -145,8 +145,8 @@ process trim {
 
 	output:
 
-	file("${params.prefix}_trimmed*.fq") into todecontaminate
-	file("${params.prefix}_trimmed*.fq") into trimmedreads
+	file("${params.prefix}*.fq") into todecontaminate
+	file("${params.prefix}*.fq") into trimmedreads
 
 
    	script:
@@ -156,7 +156,7 @@ process trim {
 	maxmem=\$(echo ${task.memory} | sed 's/ //g' | sed 's/B//g')
 
 	#Defines command for trimming of adapters and low quality bases
-	if [ \"$params.library\" = \"paired\" ]; then
+	if [ \"$params.library\" = \"paired-end\" ]; then
 		CMD=\"bbduk.sh -Xmx\"\$maxmem\" in=$reads1 in2=$reads2 out=${params.prefix}_trimmed_R1_tmp.fq out2=${params.prefix}_trimmed_R2_tmp.fq outs=${params.prefix}_trimmed_singletons_tmp.fq ktrim=r k=$params.kcontaminants mink=$params.mink hdist=$params.hdist qtrim=rl trimq=$params.Quality  minlength=$params.minlength ref=$adapters qin=$params.Pcoding threads=${task.cpus} tbo tpe ow\"
 	else
 		CMD=\"bbduk.sh -Xmx\"\$maxmem\" in=$reads1 out=${params.prefix}_trimmed_tmp.fq ktrim=r k=$params.kcontaminants mink=$params.mink hdist=$params.hdist qtrim=rl trimq=$params.Quality  minlength=$params.minlength ref=$adapters qin=$params.Pcoding threads=${task.cpus} tbo tpe ow\"
@@ -166,14 +166,14 @@ process trim {
 	exec \$CMD 2>&1
 	
 	#Removing synthetic contaminants
-	if [ \"$params.library\" = \"paired\" ]; then
+	if [ \"$params.library\" = \"paired-end\" ]; then
 		bbduk.sh -Xmx\"\$maxmem\" in=${params.prefix}_trimmed_R1_tmp.fq in2=${params.prefix}_trimmed_R2_tmp.fq out=${params.prefix}_trimmed_R1.fq out2=${params.prefix}_trimmed_R2.fq k=31 ref=$phix174ill,$artifacts qin=$params.Pcoding threads=${task.cpus} ow
 	else
 		bbduk.sh -Xmx\"\$maxmem\" in=${params.prefix}_trimmed_tmp.fq out=${params.prefix}_trimmed.fq k=31 ref=$phix174ill,$artifacts qin=$params.Pcoding threads=${task.cpus} ow
 	fi
 
 
-	if [ \"$params.library\" = \"paired\" ]; then
+	if [ \"$params.library\" = \"paired-end\" ]; then
 	bbduk.sh -Xmx\"\$maxmem\" in=${params.prefix}_trimmed_singletons_tmp.fq out=${params.prefix}_trimmed_singletons.fq k=31 ref=$phix174ill,$artifacts qin=$params.Pcoding threads=${task.cpus} ow
 	
 	fi
@@ -201,8 +201,8 @@ process decontaminate {
 	
 	output:
 
-	file "${params.prefix}_clean.fq" into decontaminatedreads
-	file "${params.prefix}_clean.fq" into toprofiletaxa
+	file "${params.prefix}*_cont.fq" into decontaminatedreads
+	file "${params.prefix}*_clean.fq" into toprofiletaxa
 
 	script:
 	"""
@@ -210,7 +210,7 @@ process decontaminate {
 	#Sets the maximum memory to the value requested in the config file
 	maxmem=\$(echo ${task.memory} | sed 's/ //g' | sed 's/B//g')
 	
-	if [ \"$params.library\" = \"paired\" ]; then
+	if [ \"$params.library\" = \"paired-end\" ]; then
 		CMD=\"bbwrap.sh  -Xmx\"\$maxmem\" mapper=bbmap append=t in1=$infile1,$infile12 in2=$infile2,null outu=${params.prefix}_clean.fq outm=${params.prefix}_cont.fq minid=$params.mind maxindel=$params.maxindel bwr=$params.bwr bw=12 minhits=2 qtrim=rl trimq=$params.Quality path=$RefGenome qin=$params.Pcoding threads=${task.cpus} untrim quickmatch fast ow\"
 	else
 		CMD=\"bbwrap.sh  -Xmx\"\$maxmem\" mapper=bbmap append=t in1=$infile1 outu=${params.prefix}_clean.fq outm=${params.prefix}_cont.fq minid=$params.mind maxindel=$params.maxindel bwr=$params.bwr bw=12 minhits=2 qtrim=rl trimq=$params.Quality path=$RefGenome qin=$params.Pcoding threads=${task.cpus} untrim quickmatch fast ow\"
@@ -253,7 +253,9 @@ process profileTaxa {
 	rm -rf ${params.prefix}_bt2out.txt
 	
 	#Defines command for estimating abundances
+
 	CMD=\"python /opt/biobakery-metaphlan2-*/metaphlan2.py --input_type fastq --bowtie2out=${params.prefix}.bt2 -t rel_ab --bt2_ps $params.bt2options --nproc ${task.cpus} $infile -o ${params.date}.txt \"
+
 
 
 	#Estimates microbial abundances
@@ -289,7 +291,7 @@ process qualityAssessment {
    	set val(step), file(reads), val(label), val(stem) from toQC
 
 	output:
-	file "${params.prefix}*_fastqc.html" 
+	file "*.html" 
 
    	script:
 	"""	
