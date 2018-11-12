@@ -27,6 +27,7 @@ RUN apt-get update && apt-get install -yq --no-install-recommends \
     locales \
     libatlas3-base \
     libfreetype6-dev \
+    mercurial \
     && apt-get clean
 
 #Install OpenJDK8
@@ -64,7 +65,7 @@ RUN apt install  python3-pip --yes
 
 RUN pip3 install pandas --upgrade
 RUN apt install pkg-config
-RUN pip3 install matplotlib
+#RUN pip3 install matplotlib
 
 #Clonning Scripts
 
@@ -72,5 +73,9 @@ RUN git clone https://github.com/brunoand/NMP.git && \
         chmod +x NMP/Scripts/Immunoadept_barchart.py && \
 	echo e && \
         cp NMP/Scripts/Immunoadept_barchart.py /opt/
+
+RUN wget http://ftp.cs.stanford.edu/mirrors/ubuntu/pool/universe/m/metaphlan2/metaphlan2_2.6.0+ds.orig.tar.xz && \
+	tar -xf metaphlan2_2.6.0+ds.orig.tar.xz && \
+	mv biobakery-metaphlan2-c43e40a443ed /opt
 
 ENV PATH $PATH:/opt/::/opt/FastQC/:/opt/bbmap:/opt/biobakery-metaphlan2-7df8753d7e5e/
