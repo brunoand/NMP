@@ -6,8 +6,8 @@
 	
 */
 
-version='1.0'
-timestamp='20181903'
+version='1.1'
+timestamp='20191305'
 
 /**
 	Prints version when asked for
@@ -36,6 +36,7 @@ if (params.help) {
 	System.out.println("    --date date      Date of collection of an individual microbiome sample")
 	System.out.println("    --prefix   prefix  Prefix used to name the result files")
 	System.out.println("    --outdir   path    Output directory (will be outdir/prefix/date)")
+	System.out.println("    --reference   ref    Reference Genome")
 	System.out.println("Options:")
 	System.out.println("    --library <single-end|paired-end>")
 	System.out.println("")
@@ -197,7 +198,7 @@ process decontaminate {
 		
 	input:
 	set file(infile1), file(infile2), file(infile12) from todecontaminate.concat(mockdecontaminate).flatMap().take(3).buffer(size : 3)
-	file(RefGenome) from Channel.from( file(params.RefGenome, type: 'dir') )
+	file(RefGenome) from Channel.from( file(params.reference, type: 'dir') )
 	
 	output:
 
