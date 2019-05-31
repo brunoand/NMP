@@ -1,10 +1,10 @@
-FROM debian:jessie
+FROM ubuntu:16.04
 
 MAINTAINER Bruno Andrade <bgabriel.andrade.visconti@gmail.com>
 
 
 
-RUN echo "deb http://http.debian.net/debian jessie-backports main" > /etc/apt/sources.list.d/jessie-backports.list
+#aRUN add-apt-repository ppa:openjdk-r/ppa
 RUN apt-get update && apt-get install -yq --no-install-recommends \
     git \
     wget \
@@ -28,19 +28,14 @@ RUN apt-get update && apt-get install -yq --no-install-recommends \
     libatlas3-base \
     libfreetype6-dev \
     mercurial \
+    openjdk-8-jdk \
     && apt-get clean
 
-#Install OpenJDK8
-RUN apt-get install -t jessie-backports openjdk-8-jre-headless --yes
+
+
 
 #Install biopython
 RUN pip install biopython
-
-#Install R libraries
-#RUN R -e "install.packages('ggplot2', repos='http://cran.rstudio.com', dependencies = TRUE);" && \
- #       R -e "install.packages('ggfortify', repos='http://cran.rstudio.com', dependencies = TRUE);" && \
-  #      R -e "install.packages('stringr', repos='http://cran.rstudio.com', dependencies = TRUE);"
-
 
 #Install Metaphlan2
 RUN wget https://bitbucket.org/biobakery/metaphlan2/get/default.zip && \
@@ -65,7 +60,6 @@ RUN apt install  python3-pip --yes
 
 RUN pip3 install pandas --upgrade
 RUN apt install pkg-config
-#RUN pip3 install matplotlib
 
 #Clonning Scripts
 
@@ -74,8 +68,8 @@ RUN git clone https://github.com/brunoand/NMP.git && \
 	echo e && \
         cp NMP/Scripts/Immunoadept_barchart.py /opt/
 
-RUN wget http://ftp.cs.stanford.edu/mirrors/ubuntu/pool/universe/m/metaphlan2/metaphlan2_2.6.0+ds.orig.tar.xz && \
-	tar -xf metaphlan2_2.6.0+ds.orig.tar.xz && \
-	mv biobakery-metaphlan2-c43e40a443ed /opt
+RUN wget http://ftp.cs.stanford.edu/mirrors/ubuntu/pool/universe/m/metaphlan2/metaphlan2_2.7.8.orig.tar.bz2 && \
+	tar -xjf metaphlan2_2.7.8.orig.tar.bz2 && \
+	mv biobakery-metaphlan2-9760413b180f /opt
 
-ENV PATH $PATH:/opt/::/opt/FastQC/:/opt/bbmap:/opt/biobakery-metaphlan2-7df8753d7e5e/
+ENV PATH $PATH:/opt/::/opt/FastQC/:/opt/bbmap:/opt/biobakery-metaphlan2-9760413b180f/
