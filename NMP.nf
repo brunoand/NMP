@@ -202,7 +202,7 @@ process decontaminate {
 	
 	output:
 
-	file "${params.prefix}*_cont.fq" into decontaminatedreads
+
 	file "${params.prefix}*_clean.fq" into toprofiletaxa
 
 	script:
@@ -212,7 +212,7 @@ process decontaminate {
 	maxmem=\$(echo ${task.memory} | sed 's/ //g' | sed 's/B//g')
 	
 	if [ \"$params.library\" = \"paired-end\" ]; then
-		CMD=\"/opt/Bioinfo/bbmap/bbwrap.sh  -Xmx\"\$maxmem\" mapper=bbmap append=t in1=$infile1,$infile12 in2=$infile2,null outu=${params.prefix}_clean.fq outm=${params.prefix}_cont.fq minid=$params.mind maxindel=$params.maxindel bwr=$params.bwr bw=12 minhits=2 qtrim=rl trimq=$params.Quality path=$RefGenome qin=$params.Pcoding threads=${task.cpus} untrim quickmatch fast ow\"
+		CMD=\"/opt/bbmap/bbwrap.sh  -Xmx\"\$maxmem\" mapper=bbmap append=t in1=$infile1,$infile12 in2=$infile2,null outu=${params.prefix}_clean.fq outm=${params.prefix}_cont.fq minid=$params.mind maxindel=$params.maxindel bwr=$params.bwr bw=12 minhits=2 qtrim=rl trimq=$params.Quality path=$RefGenome qin=$params.Pcoding threads=${task.cpus} untrim quickmatch fast ow\"
 	else
 		CMD=\"/opt/bbmap/bbwrap.sh  -Xmx\"\$maxmem\" mapper=bbmap append=t in1=$infile1 outu=${params.prefix}_clean.fq outm=${params.prefix}_cont.fq minid=$params.mind maxindel=$params.maxindel bwr=$params.bwr bw=12 minhits=2 qtrim=rl trimq=$params.Quality path=$RefGenome qin=$params.Pcoding threads=${task.cpus} untrim quickmatch fast ow\"
 	fi
@@ -255,7 +255,7 @@ process profileTaxa {
 	
 	#Defines command for estimating abundances
 
-	CMD=\"python /opt/biobakery-metaphlan2-c43e40a443ed/metaphlan2.py --input_type fastq --bowtie2out=${params.prefix}.bt2 -t rel_ab --bt2_ps $params.bt2options --bowtie2db /opt/biobakery-metaphlan2-097a52362c79/metaphlan_databases/mpa_v20_m200 --nproc ${task.cpus} $infile -o ${params.date}.txt \"
+	CMD=\"python /opt/biobakery-metaphlan2-9760413b180f/metaphlan2.py --input_type fastq --bowtie2out=${params.prefix}.bt2 -t rel_ab --bt2_ps $params.bt2options --bowtie2db /opt/biobakery-metaphlan2-097a52362c79/metaphlan_databases/mpa_v20_m200 --nproc ${task.cpus} $infile -o ${params.date}.txt \"
 
 
 
@@ -278,10 +278,9 @@ if (params.library == "paired-end") {
 else {
 	trimmedreads2qc = Channel.from('4').combine(trimmedreads.flatMap()).combine( Channel.from( '' ) ).combine(Channel.from('_trimmedreads'))
 }
-decontaminatedreads2qc = Channel.from('6').combine(decontaminatedreads).combine( Channel.from( '' ) ).combine(Channel.from('_decontaminatedreads'))
 
 //Creates the channel which performs the QC
-toQC = rawreads.mix(trimmedreads2qc, decontaminatedreads2qc) 
+toQC = rawreads.mix(trimmedreads2qc)
 
 //Process performing all the Quality Assessment
 process qualityAssessment {
